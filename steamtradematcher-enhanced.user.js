@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      0.7
+// @version      0.8
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/compare
@@ -80,7 +80,14 @@ function GraphicInterface(steamTradeMatcherUtilities) {
     this.render = () => {
 
         if (this.isFullSetsPage()) {
-            this.renderFullSetsPageGadget();
+
+            intervalId = setInterval(function (self) {
+                if (document.querySelector("#fullsets-calculator-progress").style.display === 'none') {
+                    self.renderFullSetsPageGadget(self);
+                    self.printCraftableAnalisis();
+                    clearInterval(intervalId);
+                }
+            }, 1000, this);
         }
 
         if (this.isComparePage()) {
@@ -88,17 +95,55 @@ function GraphicInterface(steamTradeMatcherUtilities) {
         }
     };
 
-    this.renderFullSetsPageGadget = () => {
-        intervalId = setInterval(function (self) {
-            if (document.querySelector("#fullsets-calculator-progress").style.display === 'none') {
+    this.renderFullSetsPageGadget = (self) => {
                 document.querySelectorAll(".app-image-container").forEach(function (element) {
                     let steamAppId = element.querySelector(".badge-link a").getAttribute('href').match(/https:\/\/steamcommunity\.com\/my\/gamecards\/(\d+)\//i)[1];
                     element.innerHTML = element.innerHTML + self.fullSetsPageTemplate(steamAppId);
                 });
-                clearInterval(intervalId);
+    };
+
+    this.printCraftableAnalisis = () => {
+
+        let result = document.querySelector('.fullset-calc-results ');
+        let games = result.querySelectorAll('.app-image-container');
+
+        let countCraftableBadges = 0;
+        let countNotCraftableBadges = 0;
+
+        games.forEach(function(element){
+
+            let completeBadges = parseInt(element.querySelector('.thumbnail-count').innerText);
+            let currentBadgeLevel = parseInt(element.querySelector('.badge-link').innerText.replace('Current badge level: ', ''));
+            
+            let notCraftableBadges =    (currentBadgeLevel + completeBadges) - 5;
+
+            if (notCraftableBadges < 0) {
+                notCraftableBadges = 0;
             }
 
-        }, 1000, this);
+            let craftableBadges = 5 - currentBadgeLevel;
+            
+            if (craftableBadges >= completeBadges) {
+                craftableBadges = completeBadges;
+            }
+
+            element.style.border = '1px solid transparent';
+
+            if (notCraftableBadges > 0 && craftableBadges == 0) {
+                element.style.border = '1px solid red';
+            }
+
+            if (notCraftableBadges > 0 && craftableBadges > 0) {
+                element.style.border = '1px solid green';
+            }
+            countNotCraftableBadges+=notCraftableBadges;
+            countCraftableBadges+=craftableBadges;
+
+        });
+
+        document.querySelector('.well').innerText = document.querySelector('.well').innerText +
+        ' ('+ countCraftableBadges +' craftables for this account and '+ countNotCraftableBadges +' not)';
+
     };
 
     this.fullSetsPageTemplate = (steamAppId) => {
