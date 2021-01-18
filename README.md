@@ -2,10 +2,12 @@
 
 This script enhanced the famous steam trading cards site **Steam Trade Matcher** adding: 
 
-* Filter exchange results  by users type: BOT or non Bot.
-* Sort exchange results by quantity.
-* Add useful links to "Full Sets Calculator" tool:
-  * [Steam Card Exchange](https://www.steamcardexchange.net/)
+* Add filter actions to exchange results page: 
+  * Filter by users type: BOT or non Bot.
+  * Sort by trades quantity.
+* Add useful links and information to "Full Sets Calculator" tool:
+  * [Steam Card Exchange](https://www.steamcardexchange.net/) to game's inventory. 
+  * Calculate and mark surplus badges with a border color: RED (only surplus badges) and GREEN (some surplus badges).
 
 ### Supported sites
 
