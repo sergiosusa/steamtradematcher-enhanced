@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      0.8
+// @version      0.9
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/compare
 // @match        https://www.steamtradematcher.com/tools/fullsets
+// @match        https://www.steamtradematcher.com/tools
 // @grant        none
 // ==/UserScript==
 
@@ -93,13 +94,18 @@ function GraphicInterface(steamTradeMatcherUtilities) {
         if (this.isComparePage()) {
             this.renderComparePageGadget();
         }
+
+        if (this.isToolsPage()) {
+            this.renderLinkToExpertoDeSteam();
+        }
+
     };
 
     this.renderFullSetsPageGadget = (self) => {
-                document.querySelectorAll(".app-image-container").forEach(function (element) {
-                    let steamAppId = element.querySelector(".badge-link a").getAttribute('href').match(/https:\/\/steamcommunity\.com\/my\/gamecards\/(\d+)\//i)[1];
-                    element.innerHTML = element.innerHTML + self.fullSetsPageTemplate(steamAppId);
-                });
+        document.querySelectorAll(".app-image-container").forEach(function (element) {
+            let steamAppId = element.querySelector(".badge-link a").getAttribute('href').match(/https:\/\/steamcommunity\.com\/my\/gamecards\/(\d+)\//i)[1];
+            element.innerHTML = element.innerHTML + self.fullSetsPageTemplate(steamAppId);
+        });
     };
 
     this.printCraftableAnalisis = () => {
@@ -110,39 +116,39 @@ function GraphicInterface(steamTradeMatcherUtilities) {
         let countCraftableBadges = 0;
         let countNotCraftableBadges = 0;
 
-        games.forEach(function(element){
+        games.forEach(function (element) {
 
             let completeBadges = parseInt(element.querySelector('.thumbnail-count').innerText);
             let currentBadgeLevel = parseInt(element.querySelector('.badge-link').innerText.replace('Current badge level: ', ''));
-            
-            let notCraftableBadges =    (currentBadgeLevel + completeBadges) - 5;
+
+            let notCraftableBadges = (currentBadgeLevel + completeBadges) - 5;
 
             if (notCraftableBadges < 0) {
                 notCraftableBadges = 0;
             }
 
             let craftableBadges = 5 - currentBadgeLevel;
-            
+
             if (craftableBadges >= completeBadges) {
                 craftableBadges = completeBadges;
             }
 
             element.style.border = '1px solid transparent';
 
-            if (notCraftableBadges > 0 && craftableBadges == 0) {
+            if (notCraftableBadges > 0 && craftableBadges === 0) {
                 element.style.border = '1px solid red';
             }
 
             if (notCraftableBadges > 0 && craftableBadges > 0) {
                 element.style.border = '1px solid green';
             }
-            countNotCraftableBadges+=notCraftableBadges;
-            countCraftableBadges+=craftableBadges;
+            countNotCraftableBadges += notCraftableBadges;
+            countCraftableBadges += craftableBadges;
 
         });
 
         document.querySelector('.well').innerText = document.querySelector('.well').innerText +
-        ' ('+ countCraftableBadges +' craftables for this account and '+ countNotCraftableBadges +' not)';
+            ' (' + countCraftableBadges + ' craftables for this account and ' + countNotCraftableBadges + ' not)';
 
     };
 
@@ -154,6 +160,17 @@ function GraphicInterface(steamTradeMatcherUtilities) {
             '</a>' +
             '</div>';
 
+    };
+
+    this.renderLinkToExpertoDeSteam = () => {
+        document.querySelector('#content > div.container-fluid > div:nth-child(2) > div:nth-child(3)').innerHTML =
+            '<a target="_blank" href="https://expertodesteam.com" style="text-decoration:none;">' +
+            '<div class="tool-div well">' +
+            '<div class="tool-div-title"><span class="glyphicon glyphicon-fire"></span> Experto de Steam</div>' +
+            '<div class="tool-div-desc">Quieres conocer todos los secretos y herramientas para steam? Este es tu lugar.' +
+            '</div>' +
+            '</div>' +
+            '</a>';
     };
 
     this.renderComparePageGadget = () => {
@@ -209,6 +226,10 @@ function GraphicInterface(steamTradeMatcherUtilities) {
 
     this.isComparePage = () => {
         return window.location.href.includes('/compare');
+    };
+
+    this.isToolsPage = () => {
+        return window.location.href.includes('/tools');
     };
 
     this.insertBefore = (newNode, referenceNode) => {
