@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      0.9
+// @version      1.0
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/compare
@@ -215,7 +215,7 @@ function GraphicInterface(steamTradeMatcherUtilities) {
             '<div id="show-all-btn" class="trade-button" style="margin-right: 5px;margin-left: 5px;">All</div>' +
             '<div id="order-by-trade-quantity-btn" class="trade-button" style="margin-right: 5px;margin-left: 5px;">Order by trades quantity</div>' +
             '</div>' +
-            '<div style="text-align:center;margin-bottom: 10px;" > Created by <a href="https://sergiosusa.com" target="_blank">Sergio Susa</a> and powered by <a href="https://sergiosusa.com" target="_blank">Experto de Steam</a>' +
+            '<div style="text-align:center;margin-bottom: 10px;" > Created by <a href="https://sergiosusa.com" target="_blank">Sergio Susa</a> and powered by <a href="https://expertodesteam.com" target="_blank">Experto de Steam</a>' +
             '</div>' +
             '</div>';
     };
