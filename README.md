@@ -35,8 +35,9 @@ No extra configuration required.
 
 ## 📷Screenshots📷
 
-![Filter exchange results  by users type: BOT or non Bot](https://i.ibb.co/VtCCLd7/steamtradematcher-1.png)
-![Add useful links to "Full Sets Calculator" tool](https://i.ibb.co/MpNzLy8/steamtradematcher-2.png)
+![Filter exchange results  by users type: BOT or non Bot](https://i.ibb.co/9V8X0LJ/steamtradematcher-enhanced-1.webp)
+![Add useful links to "Full Sets Calculator" tool](https://i.ibb.co/RHK8Zzn/steamtradematcher-enhanced-2.webp)
+![Add relevant craft information](https://i.ibb.co/rwRj5pk/steamtradematcher-enhanced-3.webp)
 
 ### ☕Buy me a coffee☕
 
