@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      1.0
+// @version      1.1
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/compare
@@ -14,16 +14,24 @@ var intervalId;
 
 (function () {
     'use strict';
+    let steamTradeMatcherUtilities = new SteamTradeMatcherUtilities();
     let graphicInterface = new GraphicInterface(
-        new SteamTradeMatcherUtilities()
+        steamTradeMatcherUtilities
     );
     graphicInterface.render();
+
+    if (graphicInterface.isComparePage()){
+        steamTradeMatcherUtilities.sendFullCompare();
+    }
 })();
 
 function SteamTradeMatcherUtilities() {
 
     this.BOT_USER_TYPE = '(Trade bot)';
     this.STM_USER_TYPE = '(STM user)';
+
+    this.extraCompareIds = null;
+    this.intervalId = null;
 
     this.showAll = () => {
         this.showUserByType(null);
@@ -72,6 +80,58 @@ function SteamTradeMatcherUtilities() {
             document.querySelector('#match-results').append(item);
         });
     };
+
+    this.sendFullCompare = () => {
+
+        this.extraCompareIds = localStorage.getItem("extra-compare-ids");
+
+        if (null !== this.extraCompareIds) {
+            this.extraCompareIds = JSON.parse(this.extraCompareIds);
+        } else {
+            this.extraCompareIds = publicProfiles;
+            localStorage.setItem('extra-compare-ids', JSON.stringify(this.extraCompareIds));
+        }
+
+        for (let x = 0; x < publicProfiles.length; x++) {
+            const element = publicProfiles[x];
+            this.removeItemFromArr(this.extraCompareIds, element);
+        }
+
+        var self = this;
+
+        this.intervalId = setInterval(function (){
+
+        let sliceToCompare = self.extraCompareIds.splice(0, 10);
+
+            $('body').queue(function() {
+                compareInventories(sliceToCompare, 'public');
+            });
+
+            if (self.extraCompareIds.length === 0) {
+                clearInterval(self.intervalId);
+                self.intervalId = null;
+            }
+
+        }, 2000);
+
+        let newExtraCompareIds = JSON.parse(localStorage.getItem('extra-compare-ids')).concat(publicProfiles);
+        newExtraCompareIds = this.removeRepeated(newExtraCompareIds)
+        localStorage.setItem('extra-compare-ids', JSON.stringify(newExtraCompareIds));
+    };
+
+    this.removeRepeated = (arr) => {
+        let result = new Set(arr);
+        return [...result];
+    };
+
+    this.removeItemFromArr = (arr, item) => {
+        let i = arr.indexOf( item );
+
+        if ( i !== -1 ) {
+            arr.splice( i, 1 );
+        }
+    };
+
 }
 
 function GraphicInterface(steamTradeMatcherUtilities) {
@@ -219,6 +279,7 @@ function GraphicInterface(steamTradeMatcherUtilities) {
             '</div>' +
             '</div>';
     };
+
 
     this.isFullSetsPage = () => {
         return window.location.href.includes('/tools/fullsets');
