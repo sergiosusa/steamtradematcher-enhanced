@@ -9,6 +9,9 @@ This script enhanced the famous steam trading cards site **Steam Trade Matcher**
   * [Steam Card Exchange](https://www.steamcardexchange.net/) to game's inventory. 
   * Calculate and mark surplus badges with a border color: RED (only surplus badges) and GREEN (some surplus badges).
 
+> **Experimental**: 
+> + Avoid the 500 result comparison restriction.
+
 ### Supported sites
 
 - [Steam Trade Matcher](https://www.steamtradematcher.com)
@@ -38,7 +41,12 @@ No extra configuration required.
 ![Filter exchange results  by users type: BOT or non Bot](https://i.ibb.co/9V8X0LJ/steamtradematcher-enhanced-1.webp)
 ![Add useful links to "Full Sets Calculator" tool](https://i.ibb.co/RHK8Zzn/steamtradematcher-enhanced-2.webp)
 ![Add relevant craft information](https://i.ibb.co/rwRj5pk/steamtradematcher-enhanced-3.webp)
+![Avoid the 500 result comparison restriction](https://i.ibb.co/6rf9bPS/steamtradematcher-enhanced-3.png)
 
 ### ☕Buy me a coffee☕
 
-If you want to support my scripts, consider to use my amazon [affiliate link](https://amazon.es/?tag=sergiosusa-21) or add this query string ``?tag=sergiosusa-21`` before add a product to the basket when you buy on Amazon spain.
+If you want to support my scripts consider to use:  
+
+- My Amazon [affiliate link](https://amazon.es/?tag=sergiosusa-21) or add this query string ``?tag=sergiosusa-21`` before add a product to the basket when you buy on Amazon spain.
+- My Letyshops [referal link](https://letyshops.com/es/winwin?ww=17530599) to get €5 each.
+- My Payme [link](https://paypal.me/sergiosusa?locale.x=es_ES) to send me a tip.
