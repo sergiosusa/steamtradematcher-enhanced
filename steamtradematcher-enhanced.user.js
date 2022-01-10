@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      1.1
+// @version      2.0
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/compare
@@ -10,261 +10,131 @@
 // @grant        none
 // ==/UserScript==
 
-var intervalId;
-
 (function () {
     'use strict';
-    let steamTradeMatcherUtilities = new SteamTradeMatcherUtilities();
-    let graphicInterface = new GraphicInterface(
-        steamTradeMatcherUtilities
-    );
-    graphicInterface.render();
-
-    if (graphicInterface.isComparePage()){
-        steamTradeMatcherUtilities.sendFullCompare();
+    try {
+        let steamTradeMatcher = new SteamTradeMatcher();
+        steamTradeMatcher.render();
+    } catch (exception) {
+        alert(exception);
     }
 })();
 
-function SteamTradeMatcherUtilities() {
+function SteamTradeMatcher() {
 
-    this.BOT_USER_TYPE = '(Trade bot)';
-    this.STM_USER_TYPE = '(STM user)';
+    this.rendererList = [
+        new FilterScanResults(),
+        new FullSetsResultAnalyzer(),
+        new ToolsExtraLink()
+    ];
 
-    this.extraCompareIds = null;
-    this.intervalId = null;
-
-    this.showAll = () => {
-        this.showUserByType(null);
+    this.render = () => {
+        let renderer = this.findRenderer();
+        renderer.render();
     };
 
-    this.showTradeBots = () => {
-        this.showUserByType(this.BOT_USER_TYPE);
+    this.findRenderer = () => {
+        return this.rendererList.find(renderer => renderer.canHandleCurrentPage());
     };
-
-    this.showNonTradeBots = () => {
-        this.showUserByType(this.STM_USER_TYPE);
-    };
-
-    this.showUserByType = (type) => {
-        document.querySelectorAll('.stm-user').forEach(function (item) {
-            let userType = item.innerHTML;
-            let traderNode = item.parentNode.parentNode.parentNode;
-
-            if (userType === type || type === null) {
-                traderNode.style.display = '';
-            } else {
-                traderNode.style.display = 'none';
-            }
-        });
-    };
-
-    this.orderByTradeQuantity = () => {
-        let results = document.querySelectorAll('#match-results > div');
-        let arrayNodes = [];
-
-        results.forEach(function (item) {
-            item.parentElement.removeChild(item);
-            arrayNodes.push(item);
-        });
-
-        arrayNodes.sort(
-            (a, b) => {
-                let tradesA = a.querySelectorAll('.match-container').length;
-                let tradesB = b.querySelectorAll('.match-container').length;
-
-                return (tradesA < tradesB) ? ((tradesA < tradesB) ? 1 : 0) : -1;
-            }
-        );
-
-        arrayNodes.forEach(function (item) {
-            document.querySelector('#match-results').append(item);
-        });
-    };
-
-    this.sendFullCompare = () => {
-
-        this.extraCompareIds = localStorage.getItem("extra-compare-ids");
-
-        if (null !== this.extraCompareIds) {
-            this.extraCompareIds = JSON.parse(this.extraCompareIds);
-        } else {
-            this.extraCompareIds = publicProfiles;
-            localStorage.setItem('extra-compare-ids', JSON.stringify(this.extraCompareIds));
-        }
-
-        for (let x = 0; x < publicProfiles.length; x++) {
-            const element = publicProfiles[x];
-            this.removeItemFromArr(this.extraCompareIds, element);
-        }
-
-        var self = this;
-
-        this.intervalId = setInterval(function (){
-
-        let sliceToCompare = self.extraCompareIds.splice(0, 10);
-
-            $('body').queue(function() {
-                compareInventories(sliceToCompare, 'public');
-            });
-
-            if (self.extraCompareIds.length === 0) {
-                clearInterval(self.intervalId);
-                self.intervalId = null;
-            }
-
-        }, 2000);
-
-        let newExtraCompareIds = JSON.parse(localStorage.getItem('extra-compare-ids')).concat(publicProfiles);
-        newExtraCompareIds = this.removeRepeated(newExtraCompareIds)
-        localStorage.setItem('extra-compare-ids', JSON.stringify(newExtraCompareIds));
-    };
-
-    this.removeRepeated = (arr) => {
-        let result = new Set(arr);
-        return [...result];
-    };
-
-    this.removeItemFromArr = (arr, item) => {
-        let i = arr.indexOf( item );
-
-        if ( i !== -1 ) {
-            arr.splice( i, 1 );
-        }
-    };
-
 }
 
-function GraphicInterface(steamTradeMatcherUtilities) {
+function Renderer() {
+    this.handlePage = "";
 
-    this.steamTradeMatcherUtilities = steamTradeMatcherUtilities;
+    this.canHandleCurrentPage = () => {
+        return document.location.href.includes(this.handlePage);
+    };
+}
+
+function FilterScanResults() {
+    Renderer.call(this);
+    this.handlePage = "https://www.steamtradematcher.com/compare";
+
+    this.USER_TYPE = {
+        BOT: "(Trade bot)",
+        STM: "(STM user)"
+    };
+
+    this.intervalId = null;
 
     this.render = () => {
 
-        if (this.isFullSetsPage()) {
+        this.sendHistoricalProfileComparison();
 
-            intervalId = setInterval(function (self) {
-                if (document.querySelector("#fullsets-calculator-progress").style.display === 'none') {
-                    self.renderFullSetsPageGadget(self);
-                    self.printCraftableAnalisis();
-                    clearInterval(intervalId);
-                }
-            }, 1000, this);
-        }
+        let progressBarDiv = document.getElementById("progress-div");
+        let newElement = document.createElement("div");
+        newElement.innerHTML = this.filterTemplate();
+        this.insertBefore(newElement, progressBarDiv);
 
-        if (this.isComparePage()) {
-            this.renderComparePageGadget();
-        }
+        document.querySelector("#show-trade-bots-btn").onclick = () => {
+            this.showTradeBots();
+            return false;
+        };
 
-        if (this.isToolsPage()) {
-            this.renderLinkToExpertoDeSteam();
-        }
+        document.querySelector("#show-non-trade-bots-btn").onclick = () => {
+            this.showNonTradeBots();
+            return false;
+        };
 
+        document.querySelector("#show-all-btn").onclick = () => {
+            this.showAll();
+            return false;
+        };
+
+        document.querySelector("#order-by-trade-quantity-btn").onclick = () => {
+            this.orderByTradeQuantity();
+            return false;
+        };
+    }
+
+    this.showAll = () => {
+        this.showUserByType();
     };
 
-    this.renderFullSetsPageGadget = (self) => {
-        document.querySelectorAll(".app-image-container").forEach(function (element) {
-            let steamAppId = element.querySelector(".badge-link a").getAttribute('href').match(/https:\/\/steamcommunity\.com\/my\/gamecards\/(\d+)\//i)[1];
-            element.innerHTML = element.innerHTML + self.fullSetsPageTemplate(steamAppId);
+    this.showTradeBots = () => {
+        this.showUserByType(this.USER_TYPE.BOT);
+    };
+
+    this.showNonTradeBots = () => {
+        this.showUserByType(this.USER_TYPE.STM);
+    };
+
+    this.orderByTradeQuantity = () => {
+
+        let traders = [];
+
+        document.querySelectorAll("#match-results > div.match-box").forEach((trader) => {
+            trader.parentElement.removeChild(trader);
+            traders.push(trader);
+        });
+
+        traders.sort(
+            (a, b) => {
+                let countTradesA = a.querySelectorAll(".match-container").length;
+                let countTradesB = b.querySelectorAll(".match-container").length;
+                return (countTradesA < countTradesB) ? ((countTradesA < countTradesB) ? 1 : 0) : -1;
+            }
+        );
+
+        traders.forEach((trader) => {
+            document.querySelector('#match-results').append(trader);
         });
     };
 
-    this.printCraftableAnalisis = () => {
+    this.showUserByType = (type) => {
 
-        let result = document.querySelector('.fullset-calc-results ');
-        let games = result.querySelectorAll('.app-image-container');
+        document.querySelectorAll("#match-results > div.match-box").forEach((trader) => {
+            let userType = trader.querySelector(".stm-user").innerText;
 
-        let countCraftableBadges = 0;
-        let countNotCraftableBadges = 0;
-
-        games.forEach(function (element) {
-
-            let completeBadges = parseInt(element.querySelector('.thumbnail-count').innerText);
-            let currentBadgeLevel = parseInt(element.querySelector('.badge-link').innerText.replace('Current badge level: ', ''));
-
-            let notCraftableBadges = (currentBadgeLevel + completeBadges) - 5;
-
-            if (notCraftableBadges < 0) {
-                notCraftableBadges = 0;
+            if (userType === type || type === undefined) {
+                trader.style.display = "";
+            } else {
+                trader.style.display = "none";
             }
-
-            let craftableBadges = 5 - currentBadgeLevel;
-
-            if (craftableBadges >= completeBadges) {
-                craftableBadges = completeBadges;
-            }
-
-            element.style.border = '1px solid transparent';
-
-            if (notCraftableBadges > 0 && craftableBadges === 0) {
-                element.style.border = '1px solid red';
-            }
-
-            if (notCraftableBadges > 0 && craftableBadges > 0) {
-                element.style.border = '1px solid green';
-            }
-            countNotCraftableBadges += notCraftableBadges;
-            countCraftableBadges += craftableBadges;
-
         });
-
-        document.querySelector('.well').innerText = document.querySelector('.well').innerText +
-            ' (' + countCraftableBadges + ' craftables for this account and ' + countNotCraftableBadges + ' not)';
-
     };
 
-    this.fullSetsPageTemplate = (steamAppId) => {
-
-        return '<div class="badge-link center-block">' +
-            '<a target="_blank" href="https://www.steamcardexchange.net/index.php?inventorygame-appid-' + steamAppId + '">' +
-            '<img src="https://www.steamcardexchange.net/include/design/img/navbar-logo.png" alt="Steam Card Exchange inventory link"/>' +
-            '</a>' +
-            '</div>';
-
-    };
-
-    this.renderLinkToExpertoDeSteam = () => {
-        document.querySelector('#content > div.container-fluid > div:nth-child(2) > div:nth-child(3)').innerHTML =
-            '<a target="_blank" href="https://expertodesteam.com" style="text-decoration:none;">' +
-            '<div class="tool-div well">' +
-            '<div class="tool-div-title"><span class="glyphicon glyphicon-fire"></span> Experto de Steam</div>' +
-            '<div class="tool-div-desc">Quieres conocer todos los secretos y herramientas para steam? Este es tu lugar.' +
-            '</div>' +
-            '</div>' +
-            '</a>';
-    };
-
-    this.renderComparePageGadget = () => {
-        let progressDiv = document.getElementById('progress-div');
-        let newElement = document.createElement('div');
-        newElement.innerHTML = this.comparePageTemplate();
-        this.insertBefore(newElement, progressDiv);
-
-        let showTradeBotsBtn = document.getElementById('show-trade-bots-btn');
-        showTradeBotsBtn.onclick = () => {
-            this.steamTradeMatcherUtilities.showTradeBots();
-            return false;
-        };
-
-        let showNonTradeBotsBtn = document.getElementById('show-non-trade-bots-btn');
-        showNonTradeBotsBtn.onclick = () => {
-            this.steamTradeMatcherUtilities.showNonTradeBots();
-            return false;
-        };
-
-        let showAllBtn = document.getElementById('show-all-btn');
-        showAllBtn.onclick = () => {
-            this.steamTradeMatcherUtilities.showAll();
-            return false;
-        };
-
-        let orderByBtn = document.getElementById('order-by-trade-quantity-btn');
-        orderByBtn.onclick = () => {
-            this.steamTradeMatcherUtilities.orderByTradeQuantity();
-            return false;
-        };
-    };
-
-    this.comparePageTemplate = () => {
+    this.filterTemplate = () => {
         return '<div class="panel panel-default" id="utilities-div">' +
             '<div class="panel-heading">' +
             '<h3 class="panel-title">Filter Results</h3>' +
@@ -280,24 +150,150 @@ function GraphicInterface(steamTradeMatcherUtilities) {
             '</div>';
     };
 
+    this.sendHistoricalProfileComparison = () => {
+        this.historicalProfiles = localStorage.getItem("historical-profiles");
 
-    this.isFullSetsPage = () => {
-        return window.location.href.includes('/tools/fullsets');
+        if (null !== this.historicalProfiles) {
+            this.historicalProfiles = JSON.parse(this.historicalProfiles)
+        } else {
+            this.historicalProfiles = publicProfiles;
+            localStorage.setItem("historical-profiles", JSON.stringify(this.historicalProfiles));
+        }
+
+        for (let index = 0; index < publicProfiles.length; index++) {
+            const profile = publicProfiles[index];
+            this.removeItem(this.historicalProfiles, profile);
+        }
+
+        this.intervalId = setInterval((() => {
+            let bundle = this.historicalProfiles.splice(0, 10);
+
+            $('body').queue(function () {
+                compareInventories(bundle, 'public');
+            });
+
+            if (this.historicalProfiles.length === 0) {
+                clearInterval(this.intervalId);
+                this.intervalId = null;
+            }
+
+        }).bind(this), 2000);
+
+        let newHistoricalProfiles = JSON.parse(localStorage.getItem('historical-profiles')).concat(publicProfiles);
+        newHistoricalProfiles = this.removeRepeated(newHistoricalProfiles);
+        localStorage.setItem('historical-profiles', JSON.stringify(newHistoricalProfiles));
     };
 
-    this.isComparePage = () => {
-        return window.location.href.includes('/compare');
-    };
+    this.removeRepeated = (array) => {
+        let result = new Set(array);
+        return [...result];
+    }
 
-    this.isToolsPage = () => {
-        return window.location.href.includes('/tools');
+    this.removeItem = (historicalProfiles, profile) => {
+        let index = historicalProfiles.indexOf(profile);
+        if (index > -1) {
+            historicalProfiles.splice(index, 1);
+        }
     };
 
     this.insertBefore = (newNode, referenceNode) => {
         referenceNode.parentNode.insertBefore(newNode, referenceNode);
     };
+}
 
-    this.insertAfter = (newNode, referenceNode) => {
-        referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+FilterScanResults.prototype = Object.create(Renderer.prototype);
+
+function FullSetsResultAnalyzer() {
+    Renderer.call(this);
+    this.handlePage = "https://www.steamtradematcher.com/tools/fullsets";
+    this.intervalId = null;
+
+    this.render = () => {
+        this.intervalId = setInterval((() => {
+            if (document.querySelector("#fullsets-calculator-progress").style.display === 'none') {
+                this.injectSteamCardExchangeGameLink();
+                this.printBadgeAnalysis();
+                clearInterval(this.intervalId);
+                this.intervalId = null;
+            }
+        }).bind(this), 1000);
+    }
+
+    this.injectSteamCardExchangeGameLink = () => {
+        document.querySelectorAll(".app-image-container").forEach(((gameCard) => {
+            let steamAppId = gameCard.querySelector(".badge-link a").getAttribute('href').match(/https:\/\/steamcommunity\.com\/my\/gamecards\/(\d+)\//i)[1];
+            gameCard.innerHTML = gameCard.innerHTML + this.steamCardExchangeGameLinkTemplate(steamAppId);
+        }).bind(this));
+    };
+
+    this.steamCardExchangeGameLinkTemplate = (steamAppId) => {
+        return '<div class="badge-link center-block">' +
+            '<a target="_blank" href="https://www.steamcardexchange.net/index.php?inventorygame-appid-' + steamAppId + '">' +
+            '<img src="https://www.steamcardexchange.net/include/design/img/navbar-logo.png" alt="Steam Card Exchange inventory link"/>' +
+            '</a>' +
+            '</div>';
+    };
+
+    this.printBadgeAnalysis = () => {
+
+        let gameCards = document.querySelector(".fullset-calc-results").querySelectorAll(".app-image-container");
+
+        let creatableBadges = 0;
+        let notCreatableBadges = 0;
+
+        gameCards.forEach((gameCard) => {
+
+            let completeBadges = parseInt(gameCard.querySelector('.thumbnail-count').innerText);
+            let currentBadgeLevel = parseInt(gameCard.querySelector('.badge-link').innerText.replace('Current badge level: ', ''));
+
+            let unavailableCreatableBadges = (currentBadgeLevel + completeBadges) - 5;
+
+            if (unavailableCreatableBadges < 0) {
+                unavailableCreatableBadges = 0;
+            }
+
+            let availableCreatableBadges = 5 - currentBadgeLevel;
+
+            if (availableCreatableBadges >= completeBadges) {
+                availableCreatableBadges = completeBadges;
+            }
+
+            gameCard.style.border = '1px solid transparent';
+
+            if (unavailableCreatableBadges > 0 && availableCreatableBadges === 0) {
+                gameCard.style.border = '1px solid red';
+            }
+
+            if (unavailableCreatableBadges > 0 && availableCreatableBadges > 0) {
+                gameCard.style.border = '1px solid green';
+            }
+            notCreatableBadges += unavailableCreatableBadges;
+            creatableBadges += availableCreatableBadges;
+
+        });
+
+        document.querySelector('.well').innerText = document.querySelector('.well').innerText +
+            ' (' + creatableBadges + ' craftables for this account and ' + notCreatableBadges + ' not)';
+    };
+}
+
+FullSetsResultAnalyzer.prototype = Object.create(Renderer.prototype);
+
+
+function ToolsExtraLink() {
+    Renderer.call(this);
+    this.handlePage = "https://www.steamtradematcher.com/tools";
+
+    this.render = () => {
+        document.querySelector('#content > div.container-fluid > div:nth-child(2) > div:nth-child(3)').innerHTML =
+            '<a target="_blank" href="https://expertodesteam.com" style="text-decoration:none;">' +
+            '<div class="tool-div well">' +
+            '<div class="tool-div-title"><span class="glyphicon glyphicon-fire"></span> Experto de Steam</div>' +
+            '<div class="tool-div-desc">Quieres conocer todos los secretos y herramientas para steam? Este es tu lugar.' +
+            '</div>' +
+            '</div>' +
+            '</a>';
     }
 }
+
+ToolsExtraLink.prototype = Object.create(Renderer.prototype);
