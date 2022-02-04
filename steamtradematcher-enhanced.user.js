@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      2.0
+// @version      2.1
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/compare
@@ -13,6 +13,7 @@
 (function () {
     'use strict';
     try {
+        reloadWhenThereIsTooMuchLoadOnServer();
         let steamTradeMatcher = new SteamTradeMatcher();
         steamTradeMatcher.render();
     } catch (exception) {
@@ -297,3 +298,11 @@ function ToolsExtraLink() {
 }
 
 ToolsExtraLink.prototype = Object.create(Renderer.prototype);
+
+function reloadWhenThereIsTooMuchLoadOnServer() {
+    if (document.body.innerText === 'Sorry, there is too much load on the server at the moment. Please retry later.') {
+        setTimeout(function () {
+            location.reload();
+        }, 3000);
+    }
+}
