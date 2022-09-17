@@ -13,7 +13,6 @@
 (function () {
     'use strict';
     try {
-        //reloadWhenThereIsTooMuchLoadOnServer();
         let steamTradeMatcher = new SteamTradeMatcher();
         steamTradeMatcher.render();
     } catch (exception) {
@@ -43,25 +42,23 @@ function Renderer() {
     this.handlePage = "";
 
     this.canHandleCurrentPage = () => {
-        return document.location.href.includes(this.handlePage);
+        return null !== document.location.href.match(this.handlePage);
     };
 }
 
 function FilterScanResults() {
     Renderer.call(this);
-    this.handlePage = "https://beta.steamtradematcher.com/matcher";
+    this.handlePage = /https:\/\/beta.steamtradematcher\.com\/matcher/g;
 
     this.USER_TYPE = {
-        BOT: "(Trade bot)",
-        STM: "(STM user)"
+        BOT: "BOT",
+        USER: "USER",
+        ALL: "ALL"
     };
 
     this.intervalId = null;
 
     this.render = () => {
-
-        //this.sendHistoricalProfileComparison();
-
         let resultContainer = document.querySelector("#results-status");
         let newElement = document.createElement("div");
         newElement.innerHTML = this.filterTemplate();
@@ -89,7 +86,7 @@ function FilterScanResults() {
     }
 
     this.showAll = () => {
-        this.showUserByType();
+        this.showUserByType(this.USER_TYPE.ALL);
     };
 
     this.showTradeBots = () => {
@@ -97,37 +94,39 @@ function FilterScanResults() {
     };
 
     this.showNonTradeBots = () => {
-        this.showUserByType(this.USER_TYPE.STM);
+        this.showUserByType(this.USER_TYPE.USER);
     };
 
     this.orderByTradeQuantity = () => {
 
         let traders = [];
 
-        document.querySelectorAll("#match-results > div.match-box").forEach((trader) => {
+        document.querySelectorAll("#results .user-results").forEach((trader) => {
             trader.parentElement.removeChild(trader);
             traders.push(trader);
         });
 
         traders.sort(
             (a, b) => {
-                let countTradesA = a.querySelectorAll(".match-container").length;
-                let countTradesB = b.querySelectorAll(".match-container").length;
+                let countTradesA = a.querySelectorAll(".applications-results > div").length;
+                let countTradesB = b.querySelectorAll(".applications-results > div").length;
                 return (countTradesA < countTradesB) ? ((countTradesA < countTradesB) ? 1 : 0) : -1;
             }
         );
 
         traders.forEach((trader) => {
-            document.querySelector('#match-results').append(trader);
+            document.querySelector('#results').append(trader);
         });
     };
 
     this.showUserByType = (type) => {
 
-        document.querySelectorAll("#match-results > div.match-box").forEach((trader) => {
-            let userType = trader.querySelector(".stm-user").innerText;
+        document.querySelectorAll("#results > div.user-results")[0].querySelector(".fa-robot")
 
-            if (userType === type || type === undefined) {
+        document.querySelectorAll("#results > div.user-results").forEach((trader) => {
+            let bot = trader.querySelector(".fa-robot");
+
+            if ((this.USER_TYPE.BOT === type && bot !== null) || (this.USER_TYPE.USER === type && bot === null) || type === this.USER_TYPE.ALL) {
                 trader.style.display = "";
             } else {
                 trader.style.display = "none";
@@ -142,77 +141,20 @@ function FilterScanResults() {
             '<a id="show-trade-bots-btn" title="Show trade bots only" class="btn me-2 border border-2 btn-gold border-dark text-dark" href="javascript:void(0);">' +
             '   <i class="fa-solid fa-robot"></i>' +
             '</a>' +
-            '<a id="show-non-trade-bots-btn" title="Show trade bots only" class="btn me-2 border border-2 btn-gold border-dark text-dark" href="javascript:void(0);">' +
+            '<a id="show-non-trade-bots-btn" title="Show non trade bots" class="btn me-2 border border-2 btn-gold border-dark text-dark" href="javascript:void(0);">' +
             '   <i class="fa-solid fa-user"></i>' +
             '</a>' +
-            '<a id="show-all-btn" title="Show trade bots only" class="btn me-2 border border-2 btn-gold border-dark text-dark" href="javascript:void(0);">' +
+            '<a id="show-all-btn" title="Show all" class="btn me-2 border border-2 btn-gold border-dark text-dark" href="javascript:void(0);">' +
             '   <i class="fa-solid fa-people-group"></i>' +
             '</a>' +
-            '<a id="order-by-trade-quantity-btn" title="Show trade bots only" class="btn me-2 border border-2 btn-gold border-dark text-dark" href="javascript:void(0);">' +
+            '<a id="order-by-trade-quantity-btn" title="Order results" class="btn me-2 border border-2 btn-gold border-dark text-dark" href="javascript:void(0);">' +
             '   <i class="fa-solid fa-sort"></i>' +
             '</a>' +
             '</div>' +
-            '</div>';
-
-        return '<div class="panel panel-default" id="utilities-div">' +
-            '<div class="panel-heading">' +
-            '<h3 class="panel-title">Filter Results</h3>' +
-            '</div>' +
-            '<div class="panel-body" style="display:flex;flex-wrap: wrap;justify-content: center;">' +
-            '<div id="show-trade-bots-btn" class="trade-button" style="margin-right: 5px;margin-left: 5px;">Only Trade Bots</div>' +
-            '<div id="show-non-trade-bots-btn" class="trade-button" style="margin-right: 5px;margin-left: 5px;">Not Trade Bots</div>' +
-            '<div id="show-all-btn" class="trade-button" style="margin-right: 5px;margin-left: 5px;">All</div>' +
-            '<div id="order-by-trade-quantity-btn" class="trade-button" style="margin-right: 5px;margin-left: 5px;">Order by trades quantity</div>' +
-            '</div>' +
-            '<div style="text-align:center;margin-bottom: 10px;" > Created by <a href="https://sergiosusa.com" target="_blank">Sergio Susa</a> and powered by <a href="https://expertodesteam.com" target="_blank">Experto de Steam</a>' +
+            '<div style="margin: 10px">' +
+            'Created by <a href="https://sergiosusa.com" target="_blank">Sergio Susa</a> and powered by <a href="https://expertodesteam.com" target="_blank">Experto de Steam</a>' +
             '</div>' +
             '</div>';
-    };
-
-    this.sendHistoricalProfileComparison = () => {
-        this.historicalProfiles = localStorage.getItem("historical-profiles");
-
-        if (null !== this.historicalProfiles) {
-            this.historicalProfiles = JSON.parse(this.historicalProfiles)
-        } else {
-            this.historicalProfiles = publicProfiles;
-            localStorage.setItem("historical-profiles", JSON.stringify(this.historicalProfiles));
-        }
-
-        for (let index = 0; index < publicProfiles.length; index++) {
-            const profile = publicProfiles[index];
-            this.removeItem(this.historicalProfiles, profile);
-        }
-
-        this.intervalId = setInterval((() => {
-            let bundle = this.historicalProfiles.splice(0, 10);
-
-            $('body').queue(function () {
-                compareInventories(bundle, 'public');
-            });
-
-            if (this.historicalProfiles.length === 0) {
-                clearInterval(this.intervalId);
-                this.intervalId = null;
-            }
-
-        }).bind(this), 2000);
-
-        let newHistoricalProfiles = JSON.parse(localStorage.getItem('historical-profiles')).concat(publicProfiles);
-        newHistoricalProfiles = this.removeRepeated(newHistoricalProfiles);
-        localStorage.setItem('historical-profiles', JSON.stringify(newHistoricalProfiles));
-    };
-
-    this.removeRepeated = (array) => {
-        let result = new Set(array);
-        return [...result];
-    }
-
-    this.removeItem = (historicalProfiles, profile) => {
-        let index = historicalProfiles.indexOf(profile);
-        if (index > -1) {
-            historicalProfiles.splice(index, 1);
-        }
     };
 
     this.insertBefore = (newNode, referenceNode) => {
@@ -224,12 +166,12 @@ FilterScanResults.prototype = Object.create(Renderer.prototype);
 
 function FullSetsResultAnalyzer() {
     Renderer.call(this);
-    this.handlePage = "https://beta.steamtradematcher.com/tools/fullsets";
+    this.handlePage = /https:\/\/beta.steamtradematcher\.com\/tools\/fullsets/g;
     this.intervalId = null;
 
     this.render = () => {
         this.intervalId = setInterval((() => {
-            if (document.querySelector("#fullsets-calculator-progress").style.display === 'none') {
+            if (document.querySelector("#results").innerText.trim() !== 'Calculating... Please wait...') {
                 this.injectSteamCardExchangeGameLink();
                 this.printBadgeAnalysis();
                 clearInterval(this.intervalId);
@@ -239,14 +181,14 @@ function FullSetsResultAnalyzer() {
     }
 
     this.injectSteamCardExchangeGameLink = () => {
-        document.querySelectorAll(".app-image-container").forEach(((gameCard) => {
-            let steamAppId = gameCard.querySelector(".badge-link a").getAttribute('href').match(/https:\/\/steamcommunity\.com\/my\/gamecards\/(\d+)\//i)[1];
+        document.querySelectorAll("#results div.border-dark:nth-child(2) div.card").forEach(((gameCard) => {
+            let steamAppId = gameCard.querySelector("a").getAttribute('href').match(/https:\/\/steamcommunity\.com\/my\/gamecards\/(\d+)/i)[1];
             gameCard.innerHTML = gameCard.innerHTML + this.steamCardExchangeGameLinkTemplate(steamAppId);
         }).bind(this));
     };
 
     this.steamCardExchangeGameLinkTemplate = (steamAppId) => {
-        return '<div class="badge-link center-block">' +
+        return '<div style="text-align: center;" >' +
             '<a target="_blank" href="https://www.steamcardexchange.net/index.php?inventorygame-appid-' + steamAppId + '">' +
             '<img src="https://www.steamcardexchange.net/include/design/img/navbar-logo.png" alt="Steam Card Exchange inventory link"/>' +
             '</a>' +
@@ -255,15 +197,19 @@ function FullSetsResultAnalyzer() {
 
     this.printBadgeAnalysis = () => {
 
-        let gameCards = document.querySelector(".fullset-calc-results").querySelectorAll(".app-image-container");
+        let gameCards = document.querySelector("#results div.border-dark").querySelectorAll(".card");
 
         let creatableBadges = 0;
         let notCreatableBadges = 0;
 
         gameCards.forEach((gameCard) => {
 
-            let completeBadges = parseInt(gameCard.querySelector('.thumbnail-count').innerText);
-            let currentBadgeLevel = parseInt(gameCard.querySelector('.badge-link').innerText.replace('Current badge level: ', ''));
+            let completeBadges = parseInt(gameCard.querySelector("div").innerText);
+            let currentBadgeLevel = parseInt(gameCard.querySelector(".card-body div a span").innerText.replace("Current badge level: ", "").trim());
+
+            if (isNaN(currentBadgeLevel)) {
+                currentBadgeLevel = 0;
+            }
 
             let unavailableCreatableBadges = (currentBadgeLevel + completeBadges) - 5;
 
@@ -277,50 +223,45 @@ function FullSetsResultAnalyzer() {
                 availableCreatableBadges = completeBadges;
             }
 
-            gameCard.style.border = '1px solid transparent';
+            gameCard.style.border = '2px solid transparent';
 
             if (unavailableCreatableBadges > 0 && availableCreatableBadges === 0) {
-                gameCard.style.border = '1px solid red';
+                gameCard.style.border = '2px solid red';
             }
 
             if (unavailableCreatableBadges > 0 && availableCreatableBadges > 0) {
-                gameCard.style.border = '1px solid green';
+                gameCard.style.border = '2px solid green';
             }
             notCreatableBadges += unavailableCreatableBadges;
             creatableBadges += availableCreatableBadges;
 
         });
 
-        document.querySelector('.well').innerText = document.querySelector('.well').innerText +
+        document.querySelector("#results div.border-dark").querySelector(".card-header span:nth-child(2)").innerHTML =
+            document.querySelector("#results div.border-dark").querySelector(".card-header span:nth-child(2)").innerHTML +
             ' (' + creatableBadges + ' craftables for this account and ' + notCreatableBadges + ' not)';
+
     };
 }
 
 FullSetsResultAnalyzer.prototype = Object.create(Renderer.prototype);
 
-
 function ToolsExtraLink() {
     Renderer.call(this);
-    this.handlePage = "https://beta.steamtradematcher.com/tools";
+
+    this.handlePage = /https:\/\/beta.steamtradematcher\.com\/tools/g;
 
     this.render = () => {
-        document.querySelector('#content > div.container-fluid > div:nth-child(2) > div:nth-child(3)').innerHTML =
-            '<a target="_blank" href="https://expertodesteam.com" style="text-decoration:none;">' +
-            '<div class="tool-div well">' +
-            '<div class="tool-div-title"><span class="glyphicon glyphicon-fire"></span> Experto de Steam</div>' +
-            '<div class="tool-div-desc">Quieres conocer todos los secretos y herramientas para steam? Este es tu lugar.' +
-            '</div>' +
-            '</div>' +
-            '</a>';
+        document.querySelector('.row').innerHTML = document.querySelector('.row').innerHTML +
+            '<div class="col-lg-4 g-3">' +
+            '            <a target="_blank" href="https://expertodesteam.com" class="rounded-1 p-4 btn btn-dark bg-opacity-10 bg-gradient border border-dark h-100 text-center text-decoration-none text-white d-block shadow">' +
+            '                <div class="display-5 mb-3"><i class="fas fa-calculator fa-fw"></i>Experto de Steam</div>' +
+            '                <div>' +
+            '                    <span class="fw-light">Quieres conocer todos los secretos y herramientas para steam? Este es tu lugar.</span>' +
+            '                </div>' +
+            '            </a>' +
+            '        </div>';
     }
 }
 
 ToolsExtraLink.prototype = Object.create(Renderer.prototype);
-
-function reloadWhenThereIsTooMuchLoadOnServer() {
-    if (document.body.innerText === 'Sorry, there is too much load on the server at the moment. Please retry later.') {
-        setTimeout(function () {
-            location.reload();
-        }, 3000);
-    }
-}
