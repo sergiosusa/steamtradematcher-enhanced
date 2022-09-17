@@ -1,19 +1,19 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      2.1
+// @version      3.0
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
-// @match        https://www.steamtradematcher.com/compare
-// @match        https://www.steamtradematcher.com/tools/fullsets
-// @match        https://www.steamtradematcher.com/tools
+// @match        https://beta.steamtradematcher.com/matcher
+// @match        https://beta.steamtradematcher.com/tools/fullsets
+// @match        https://beta.steamtradematcher.com/tools
 // @grant        none
 // ==/UserScript==
 
 (function () {
     'use strict';
     try {
-        reloadWhenThereIsTooMuchLoadOnServer();
+        //reloadWhenThereIsTooMuchLoadOnServer();
         let steamTradeMatcher = new SteamTradeMatcher();
         steamTradeMatcher.render();
     } catch (exception) {
@@ -49,7 +49,7 @@ function Renderer() {
 
 function FilterScanResults() {
     Renderer.call(this);
-    this.handlePage = "https://www.steamtradematcher.com/compare";
+    this.handlePage = "https://beta.steamtradematcher.com/matcher";
 
     this.USER_TYPE = {
         BOT: "(Trade bot)",
@@ -60,12 +60,12 @@ function FilterScanResults() {
 
     this.render = () => {
 
-        this.sendHistoricalProfileComparison();
+        //this.sendHistoricalProfileComparison();
 
-        let progressBarDiv = document.getElementById("progress-div");
+        let resultContainer = document.querySelector("#results-status");
         let newElement = document.createElement("div");
         newElement.innerHTML = this.filterTemplate();
-        this.insertBefore(newElement, progressBarDiv);
+        this.insertBefore(newElement, resultContainer);
 
         document.querySelector("#show-trade-bots-btn").onclick = () => {
             this.showTradeBots();
@@ -136,6 +136,24 @@ function FilterScanResults() {
     };
 
     this.filterTemplate = () => {
+
+        return '<div style="margin-bottom: 10px;" class="user-results card flex-grow-1 shadow border border-gray-700">' +
+            '<div class="card-header d-flex position-sticky shadow">' +
+            '<a id="show-trade-bots-btn" title="Show trade bots only" class="btn me-2 border border-2 btn-gold border-dark text-dark" href="javascript:void(0);">' +
+            '   <i class="fa-solid fa-robot"></i>' +
+            '</a>' +
+            '<a id="show-non-trade-bots-btn" title="Show trade bots only" class="btn me-2 border border-2 btn-gold border-dark text-dark" href="javascript:void(0);">' +
+            '   <i class="fa-solid fa-user"></i>' +
+            '</a>' +
+            '<a id="show-all-btn" title="Show trade bots only" class="btn me-2 border border-2 btn-gold border-dark text-dark" href="javascript:void(0);">' +
+            '   <i class="fa-solid fa-people-group"></i>' +
+            '</a>' +
+            '<a id="order-by-trade-quantity-btn" title="Show trade bots only" class="btn me-2 border border-2 btn-gold border-dark text-dark" href="javascript:void(0);">' +
+            '   <i class="fa-solid fa-sort"></i>' +
+            '</a>' +
+            '</div>' +
+            '</div>';
+
         return '<div class="panel panel-default" id="utilities-div">' +
             '<div class="panel-heading">' +
             '<h3 class="panel-title">Filter Results</h3>' +
@@ -206,7 +224,7 @@ FilterScanResults.prototype = Object.create(Renderer.prototype);
 
 function FullSetsResultAnalyzer() {
     Renderer.call(this);
-    this.handlePage = "https://www.steamtradematcher.com/tools/fullsets";
+    this.handlePage = "https://beta.steamtradematcher.com/tools/fullsets";
     this.intervalId = null;
 
     this.render = () => {
@@ -283,7 +301,7 @@ FullSetsResultAnalyzer.prototype = Object.create(Renderer.prototype);
 
 function ToolsExtraLink() {
     Renderer.call(this);
-    this.handlePage = "https://www.steamtradematcher.com/tools";
+    this.handlePage = "https://beta.steamtradematcher.com/tools";
 
     this.render = () => {
         document.querySelector('#content > div.container-fluid > div:nth-child(2) > div:nth-child(3)').innerHTML =
