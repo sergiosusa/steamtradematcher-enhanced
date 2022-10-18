@@ -237,10 +237,32 @@ function FullSetsResultAnalyzer() {
 
         });
 
-        document.querySelector("#results div.border-dark").querySelector(".card-header span:nth-child(2)").innerHTML =
-            document.querySelector("#results div.border-dark").querySelector(".card-header span:nth-child(2)").innerHTML +
-            ' (' + creatableBadges + ' craftables for this account and ' + notCreatableBadges + ' not)';
+        let gameNode = this.calculateGameWithMoreBadgesReady();
+        let quantityOfBadges = gameNode.querySelector(".count").innerText;
+        let gameName = gameNode.querySelector(".card-title").innerText;
 
+        document.querySelector(".big-title").innerHTML +=
+            '<div style="padding-top: 10px;padding-left: 10px; " class="card border-dark">' +
+            '<h4>Analysis Results</h4>' +
+            '<div style="display: flex;flex-direction: column;">' +
+            '<div style="margin-right: 15px;"><strong>Crafteables Badges:</strong> ' + creatableBadges + '</div>' +
+            '<div style="margin-right: 15px;"><strong>Repeated Badges:</strong> ' + notCreatableBadges + '</div>' +
+            '<div style="margin-right: 15px;"><strong>Game with more badges ready: </strong> ' + gameName + ' (' + quantityOfBadges + ' badges)' + '</div>' +
+            '</div>' +
+            '</div>';
+    };
+
+    this.calculateGameWithMoreBadgesReady = () => {
+        let max = 0;
+        let nodeMax = null;
+        document.querySelector("#results div.border-dark").querySelectorAll(".item .count").forEach((gameCounter) => {
+            let current = parseInt(gameCounter.innerText);
+            if (current > max) {
+                max = current;
+                nodeMax = gameCounter;
+            }
+        });
+        return nodeMax.parentNode;
     };
 }
 
