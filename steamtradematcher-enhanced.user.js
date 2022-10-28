@@ -4,9 +4,9 @@
 // @version      3.1
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
-// @match        https://steamtradematcher.com/matcher
-// @match        https://steamtradematcher.com/tools/fullsets
-// @match        https://steamtradematcher.com/tools
+// @match        https://www.steamtradematcher.com/matcher
+// @match        https://www.steamtradematcher.com/tools/fullsets
+// @match        https://www.steamtradematcher.com/tools
 // @grant        none
 // ==/UserScript==
 
@@ -48,7 +48,7 @@ function Renderer() {
 
 function FilterScanResults() {
     Renderer.call(this);
-    this.handlePage = /https:\/\/beta.steamtradematcher\.com\/matcher/g;
+    this.handlePage = /https:\/\/www.steamtradematcher\.com\/matcher/g;
 
     this.USER_TYPE = {
         BOT: "BOT",
@@ -166,7 +166,7 @@ FilterScanResults.prototype = Object.create(Renderer.prototype);
 
 function FullSetsResultAnalyzer() {
     Renderer.call(this);
-    this.handlePage = /https:\/\/beta.steamtradematcher\.com\/tools\/fullsets/g;
+    this.handlePage = /https:\/\/www.steamtradematcher\.com\/tools\/fullsets/g;
     this.intervalId = null;
 
     this.render = () => {
@@ -271,7 +271,7 @@ FullSetsResultAnalyzer.prototype = Object.create(Renderer.prototype);
 function ToolsExtraLink() {
     Renderer.call(this);
 
-    this.handlePage = /https:\/\/beta.steamtradematcher\.com\/tools/g;
+    this.handlePage = /https:\/\/www.steamtradematcher\.com\/tools/g;
 
     this.render = () => {
         document.querySelector('.row').innerHTML = document.querySelector('.row').innerHTML +
