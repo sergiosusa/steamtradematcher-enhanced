@@ -1,20 +1,32 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      3.1
+// @version      3.2
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/matcher
 // @match        https://www.steamtradematcher.com/tools/fullsets
 // @match        https://www.steamtradematcher.com/tools
+// @match        https://www.steamtradematcher.com/*
 // @grant        none
 // ==/UserScript==
+
+var currentPage = window.location.pathname;
 
 (function () {
     'use strict';
     try {
         let steamTradeMatcher = new SteamTradeMatcher();
         steamTradeMatcher.render();
+
+        setInterval(function () {
+            if (currentPage !== window.location.pathname) {
+                currentPage = window.location.pathname;
+                steamTradeMatcher.render();
+            }
+
+        }.bind(this), 1000);
+
     } catch (exception) {
         alert(exception);
     }
@@ -30,7 +42,10 @@ function SteamTradeMatcher() {
 
     this.render = () => {
         let renderer = this.findRenderer();
-        renderer.render();
+
+        if (renderer !== undefined) {
+            renderer.render();
+        }
     };
 
     this.findRenderer = () => {
@@ -49,6 +64,7 @@ function Renderer() {
 function FilterScanResults() {
     Renderer.call(this);
     this.handlePage = /https:\/\/www.steamtradematcher\.com\/matcher/g;
+    this.intervalId = null;
 
     this.USER_TYPE = {
         BOT: "BOT",
@@ -59,30 +75,45 @@ function FilterScanResults() {
     this.intervalId = null;
 
     this.render = () => {
-        let resultContainer = document.querySelector("#results-status");
-        let newElement = document.createElement("div");
-        newElement.innerHTML = this.filterTemplate();
-        this.insertBefore(newElement, resultContainer);
 
-        document.querySelector("#show-trade-bots-btn").onclick = () => {
-            this.showTradeBots();
-            return false;
-        };
+        this.intervalId = setInterval((() => {
+            if (document.querySelector("#results-status").innerText.trim() !== 'Calculating... Please wait...') {
 
-        document.querySelector("#show-non-trade-bots-btn").onclick = () => {
-            this.showNonTradeBots();
-            return false;
-        };
+                if (document.querySelector("#filterToolbar") !== null) {
+                    return;
+                }
 
-        document.querySelector("#show-all-btn").onclick = () => {
-            this.showAll();
-            return false;
-        };
+                let resultContainer = document.querySelector("#results-status");
+                let newElement = document.createElement("div");
+                newElement.id = "filterToolbar";
+                newElement.innerHTML = this.filterTemplate();
+                this.insertBefore(newElement, resultContainer);
 
-        document.querySelector("#order-by-trade-quantity-btn").onclick = () => {
-            this.orderByTradeQuantity();
-            return false;
-        };
+                document.querySelector("#show-trade-bots-btn").onclick = () => {
+                    this.showTradeBots();
+                    return false;
+                };
+
+                document.querySelector("#show-non-trade-bots-btn").onclick = () => {
+                    this.showNonTradeBots();
+                    return false;
+                };
+
+                document.querySelector("#show-all-btn").onclick = () => {
+                    this.showAll();
+                    return false;
+                };
+
+                document.querySelector("#order-by-trade-quantity-btn").onclick = () => {
+                    this.orderByTradeQuantity();
+                    return false;
+                };
+
+                clearInterval(this.intervalId);
+                this.intervalId = null;
+            }
+        }).bind(this), 1000);
+
     }
 
     this.showAll = () => {
