@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      3.3
+// @version      3.4
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/matcher
@@ -269,10 +269,12 @@ function FullSetsResultAnalyzer() {
         });
 
         let gameNode = this.calculateGameWithMoreBadgesReady();
+        let gameName = "";
+        let quantityOfBadges = "";
 
         if(gameNode != null){
-            let quantityOfBadges = gameNode.querySelector(".count").innerText;
-            let gameName = gameNode.querySelector(".card-title").innerText;
+            quantityOfBadges = gameNode.querySelector(".count").innerText;
+            gameName = gameNode.querySelector(".card-title").innerText;
         }
         
         document.querySelector(".big-title").innerHTML +=
@@ -281,7 +283,7 @@ function FullSetsResultAnalyzer() {
             '<div style="display: flex;flex-direction: column;">' +
             '<div style="margin-right: 15px;"><strong>Crafteables Badges:</strong> ' + creatableBadges + '</div>' +
             '<div style="margin-right: 15px;"><strong>Repeated Badges:</strong> ' + notCreatableBadges + '</div>' +
-            (gameNode != null ? '<div style="margin-right: 15px;"><strong>Game with more badges ready: </strong> ' + gameName + ' (' + quantityOfBadges + ' badges)' + '</div>' : '') +
+            (gameNode != null ? ('<div style="margin-right: 15px;"><strong>Game with more badges ready: </strong> ' + gameName + ' (' + quantityOfBadges + ' badges)' + '</div>') : '') +
             '</div>' +
             '</div>';
     };
