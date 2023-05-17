@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      3.4
+// @version      3.5
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/matcher
@@ -221,7 +221,7 @@ function FullSetsResultAnalyzer() {
     this.steamCardExchangeGameLinkTemplate = (steamAppId) => {
         return '<div style="text-align: center;" >' +
             '<a target="_blank" href="https://www.steamcardexchange.net/index.php?inventorygame-appid-' + steamAppId + '">' +
-            '<img src="https://www.steamcardexchange.net/include/design/img/navbar-logo.png" alt="Steam Card Exchange inventory link"/>' +
+            '<img src="https://www.steamcardexchange.net/static/img/navbar-logo.svg" alt="Steam Card Exchange inventory link"/>' +
             '</a>' +
             '</div>';
     };
