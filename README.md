@@ -43,6 +43,11 @@ No extra configuration required.
 
 If you want to support my scripts consider to use:  
 
-- My Amazon [affiliate link](https://amazon.es/?tag=sergiosusa-21) or add this query string ``?tag=sergiosusa-21`` before add a product to the basket when you buy on Amazon spain.
-- My Letyshops [referal link](https://letyshops.com/es/winwin?ww=17530599) to get €5 each.
-- My Payme [link](https://paypal.me/sergiosusa?locale.x=es_ES) to send me a tip.
+- Paypal Me [link](https://paypal.me/sergiosusa?locale.x=es_ES) to send me a tip.
+
+#### Referral links:
+
+- My Letyshops [referral link](https://letyshops.com/es/winwin?ww=17530599) to get 5€ after using the cashback by buying at least 30€ in the first 30 days.
+- Steam LVL Up [referral link](https://steamlvlup.com/r/dizwqo) to get 75 gems for free after registration.
+- N26 [referral link](https://n26.com/r/sergios6726) to get €10 after spending your first €10 using the N26 card.
+- 

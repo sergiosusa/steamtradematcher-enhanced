@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      3.5
+// @version      3.6
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/matcher
@@ -9,6 +9,7 @@
 // @match        https://www.steamtradematcher.com/tools
 // @match        https://www.steamtradematcher.com/*
 // @grant        none
+// @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js
 // ==/UserScript==
 
 var currentPage = window.location.pathname;
@@ -221,15 +222,40 @@ function FullSetsResultAnalyzer() {
     this.steamCardExchangeGameLinkTemplate = (steamAppId) => {
         return '<div style="text-align: center;" >' +
             '<a target="_blank" href="https://www.steamcardexchange.net/index.php?inventorygame-appid-' + steamAppId + '">' +
-            '<img src="https://www.steamcardexchange.net/static/img/navbar-logo.svg" alt="Steam Card Exchange inventory link"/>' +
+            '<img class="steamTrade" src="https://www.steamcardexchange.net/static/img/navbar-logo.svg" alt="Steam Card Exchange inventory link"/>' +
             '</a>' +
             '</div>';
     };
 
     this.printBadgeAnalysis = () => {
+        document.querySelector(".big-title").innerHTML += this.badgeAnalysisTemplate(this.calculateGameListOrderByBadgesReady(10))
+        this.initializeChart(this.calculateBadgesSummary());
+    };
+
+    this.badgeAnalysisTemplate = (badgesList) => {
+        let gameTopTemplate = "";
+
+        badgesList.forEach((game) => {
+            gameTopTemplate += '<div style="width:70%;">' + game.name + '</div><div style="width:30%;">' + game.quantity + '</div>';
+        });
+
+        return '<div style="padding-top: 10px;padding-left: 10px; " class="card border-dark">' +
+            '<h4>Analysis Results</h4>' +
+            '<div style="display: flex;flex-direction: row;margin-bottom: 10px;justify-content: space-around;">' +
+            '<div width="400" height="400"><canvas id="badgesResume" ></canvas></div>' +
+            '<div style="display: flex;flex-direction: column;width: 50%;">' +
+            '<h5>Top 10</h5>' +
+            '<div style="display:flex;flex-direction:row;justify-content: space-between;flex-wrap:wrap;">' +
+            gameTopTemplate +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+    };
+
+    this.calculateBadgesSummary = () => {
 
         let gameCards = document.querySelector("#results div.border-dark").querySelectorAll(".card");
-
         let creatableBadges = 0;
         let notCreatableBadges = 0;
 
@@ -268,37 +294,83 @@ function FullSetsResultAnalyzer() {
 
         });
 
-        let gameNode = this.calculateGameWithMoreBadgesReady();
-        let gameName = "";
-        let quantityOfBadges = "";
-
-        if(gameNode != null){
-            quantityOfBadges = gameNode.querySelector(".count").innerText;
-            gameName = gameNode.querySelector(".card-title").innerText;
-        }
-        
-        document.querySelector(".big-title").innerHTML +=
-            '<div style="padding-top: 10px;padding-left: 10px; " class="card border-dark">' +
-            '<h4>Analysis Results</h4>' +
-            '<div style="display: flex;flex-direction: column;">' +
-            '<div style="margin-right: 15px;"><strong>Crafteables Badges:</strong> ' + creatableBadges + '</div>' +
-            '<div style="margin-right: 15px;"><strong>Repeated Badges:</strong> ' + notCreatableBadges + '</div>' +
-            (gameNode != null ? ('<div style="margin-right: 15px;"><strong>Game with more badges ready: </strong> ' + gameName + ' (' + quantityOfBadges + ' badges)' + '</div>') : '') +
-            '</div>' +
-            '</div>';
+        return {
+            completable: this.calculateCompletableBadges(),
+            crafteable: creatableBadges,
+            uncraftable: notCreatableBadges
+        };
     };
 
-    this.calculateGameWithMoreBadgesReady = () => {
-        let max = 0;
-        let nodeMax = null;
-        document.querySelector("#results div.border-dark").querySelectorAll(".item .count").forEach((gameCounter) => {
-            let current = parseInt(gameCounter.innerText);
-            if (current > max) {
-                max = current;
-                nodeMax = gameCounter;
+    this.initializeChart = (badgesSummary) => {
+        const ctx = document.getElementById('badgesResume').getContext('2d');
+        const myChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: [
+                    'Crafteables',
+                    'Repeated',
+                    'Completable'
+                ],
+                datasets: [
+                    {
+                        label: "Ready Badges Status",
+                        data: [badgesSummary.crafteable, badgesSummary.uncraftable, badgesSummary.completable],
+                        backgroundColor: [
+                            'rgb(52, 187, 82)',
+                            'rgb(187,52,52)',
+                            'rgb(52,74,187)'
+                        ],
+                        hoverOffset: 4
+                    }
+                ]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: "white",
+                            size: 18
+                        }
+                    }
+                }
             }
         });
-        return nodeMax !== null ? nodeMax.parentNode: null;
+    };
+
+    this.calculateCompletableBadges = () => {
+        let completableBadges = 0;
+
+        document.querySelectorAll("img.steamTrade").forEach((element) => {
+            completableBadges += parseInt(element.closest(".item.card").querySelector("div").innerText);
+        });
+
+        return completableBadges;
+    }
+
+    this.calculateGameListOrderByBadgesReady = (limit = null) => {
+        let list = [];
+
+        document.querySelector("#results div.border-dark").querySelectorAll(".item .count").forEach((gameCounter) => {
+            let current = parseInt(gameCounter.innerText);
+            list.push({
+                name: gameCounter.closest(".item").querySelector(".card-title").innerText,
+                quantity: current
+            });
+        });
+
+        let orderList = list.sort((game1, game2) => {
+            if (game1.quantity < game2.quantity) {
+                return 1;
+            } else {
+                return -1;
+            }
+        });
+
+        if (limit !== null) {
+            orderList = orderList.slice(0, limit);
+        }
+
+        return orderList;
     };
 }
 
