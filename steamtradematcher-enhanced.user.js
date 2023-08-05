@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      3.6
+// @version      3.7
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/matcher
@@ -37,20 +37,28 @@ function SteamTradeMatcher() {
 
     this.rendererList = [
         new FilterScanResults(),
+        new ScanResultConfigurator(),
         new FullSetsResultAnalyzer(),
         new ToolsExtraLink()
     ];
 
     this.render = () => {
-        let renderer = this.findRenderer();
+        let renderers = this.findRenderers();
 
-        if (renderer !== undefined) {
+        for (const renderer of renderers) {
             renderer.render();
         }
     };
 
-    this.findRenderer = () => {
-        return this.rendererList.find(renderer => renderer.canHandleCurrentPage());
+    this.findRenderers = () => {
+        let renderers = [];
+
+        for (const renderer of this.rendererList) {
+            if(renderer.canHandleCurrentPage()){
+                renderers.push(renderer);
+            }
+        }
+        return renderers;
     };
 }
 
@@ -62,6 +70,88 @@ function Renderer() {
     };
 }
 
+function ScanResultConfigurator() {
+    Renderer.call(this);
+
+    this.handlePage = /https:\/\/www.steamtradematcher\.com\/matcher/g;
+    this.intervalId = null;
+
+    this.render = () => {
+        this.intervalId = setInterval((() => {
+            if (document.querySelector("#results-status").innerText.trim() !== 'Calculating... Please wait...') {
+                document.querySelectorAll("i.fa-arrow-right-arrow-left").forEach((element, index) => {
+                    let dataAppId = element.closest("div[data-application-id]").getAttribute("data-application-id");
+                    let dataUserId = element.closest("div[data-steamid]").getAttribute("data-steamid");
+                    element.innerHTML = '<input type="checkbox" id="trade_box_' + dataUserId + "-" + dataAppId + '" value="' + dataUserId + "-" + dataAppId + '" />';
+                });
+
+                document.querySelectorAll("input[id^='trade_box_']").forEach(((element) =>{
+                    element.addEventListener('change', ((event) => {    
+                            this.updateTradeLink(event.target.closest("div.card-body"));
+                      }).bind(this));
+                }).bind(this));
+
+                clearInterval(this.intervalId);
+                this.intervalId = null;
+            }
+        }).bind(this), 1000);
+    }
+
+    this.updateTradeLink = (tradeContainer) => {
+        let selectedTrades = tradeContainer.querySelectorAll("input[id^='trade_box_']:checked");
+        let unSelectedTrades = tradeContainer.querySelectorAll("input[id^='trade_box_']:not(:checked)");
+        let tradeLink = tradeContainer.closest("div.user-results.card").querySelector("a[href*='/tradeOffer']");
+
+        if(unSelectedTrades.length > 0){
+            for (const unSelectedCheck of unSelectedTrades){
+                let selectedCardContainers = unSelectedCheck.closest("div").querySelectorAll("div:not([class])");
+                this.unmarkCard(selectedCardContainers[0].querySelector("div[selected]"));
+                this.unmarkCard(selectedCardContainers[1].querySelector("div[selected]"));
+            }
+        }
+
+        if(selectedTrades.length === 0){
+            tradeLink.href = tradeLink.getAttribute("originalHref");
+            tradeLink.removeAttribute("originalHref");
+        } else {
+            if(!tradeLink.getAttribute("originalHref")){
+                tradeLink.setAttribute("originalHref", tradeLink.href);
+            }
+
+            let queryArrayString = [];
+
+            for (const selectedCheck of selectedTrades){
+                let tradeCardContainers = selectedCheck.closest("div").querySelectorAll("div:not([class])");
+                let youCard = tradeCardContainers[0].querySelector("div[data-classid]");
+                this.markCard(youCard);
+                let youCardId = youCard.getAttribute("data-classid");
+                queryArrayString.push("you[]="+ youCardId);
+                let themCard = tradeCardContainers[1].querySelector("div[data-classid]");
+                this.markCard(themCard);
+                let themCardId = themCard.getAttribute("data-classid");
+                queryArrayString.push("them[]=" + themCardId);
+            }
+
+            let basePath = tradeLink.href.split('?')[0];
+            tradeLink.href = basePath + "?" + queryArrayString.join("&");
+        }
+
+    }
+
+    this.markCard = (cardContainer) => {
+        cardContainer.style.border = "red thin dashed";
+        cardContainer.setAttribute("selected", true);
+    }
+
+    this.unmarkCard = (cardContainer) => {
+        cardContainer.style.border = "none";
+        cardContainer.setAttribute("selected", true);
+    }
+}
+
+ScanResultConfigurator.prototype = Object.create(Renderer.prototype);
+
+
 function FilterScanResults() {
     Renderer.call(this);
     this.handlePage = /https:\/\/www.steamtradematcher\.com\/matcher/g;
@@ -72,8 +162,6 @@ function FilterScanResults() {
         USER: "USER",
         ALL: "ALL"
     };
-
-    this.intervalId = null;
 
     this.render = () => {
 
