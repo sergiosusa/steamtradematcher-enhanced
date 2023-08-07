@@ -5,6 +5,8 @@ This script enhanced the famous steam trading cards site **Steam Trade Matcher**
 * Add filter actions to exchange results page: 
   * Filter by users type: BOT or non BOT.
   * Sort by trades quantity.
+  * Configure each trade result, selecting the game to trade and also which cards to trade.
+
 * Add useful links and information to "Full Sets Calculator" tool:
   * [Steam Card Exchange](https://www.steamcardexchange.net/) to game's inventory. 
   * Calculate and mark surplus badges with a border color: RED (only surplus badges) and GREEN (some surplus badges).
@@ -36,6 +38,7 @@ No extra configuration required.
 ## 📷Screenshots📷
 
 ![Filter exchange results  by users type: BOT or non Bot](screenshots/steamtradematcher-enhanced-1.webp)
+![Trade result configuration](screenshots/steamtradematcher-enhanced-4.webp)
 ![Add relevant craft information](screenshots/steamtradematcher-enhanced-2.webp)
 ![Add useful links to "Full Sets Calculator" tool](screenshots/steamtradematcher-enhanced-3.webp)
 
@@ -50,4 +53,3 @@ If you want to support my scripts consider to use:
 - My Letyshops [referral link](https://letyshops.com/es/winwin?ww=17530599) to get 5€ after using the cashback by buying at least 30€ in the first 30 days.
 - Steam LVL Up [referral link](https://steamlvlup.com/r/dizwqo) to get 75 gems for free after registration.
 - N26 [referral link](https://n26.com/r/sergios6726) to get €10 after spending your first €10 using the N26 card.
-- 

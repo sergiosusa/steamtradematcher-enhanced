@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      3.7
+// @version      3.8
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/matcher
@@ -54,7 +54,7 @@ function SteamTradeMatcher() {
         let renderers = [];
 
         for (const renderer of this.rendererList) {
-            if(renderer.canHandleCurrentPage()){
+            if (renderer.canHandleCurrentPage()) {
                 renderers.push(renderer);
             }
         }
@@ -78,18 +78,26 @@ function ScanResultConfigurator() {
 
     this.render = () => {
         this.intervalId = setInterval((() => {
+
             if (document.querySelector("#results-status").innerText.trim() !== 'Calculating... Please wait...') {
+
+                if (document.querySelectorAll("i.fa-arrow-right-arrow-left").length > 0 && document.querySelectorAll("i.fa-arrow-right-arrow-left").length === 0) {
+                    return;
+                }
+
                 document.querySelectorAll("i.fa-arrow-right-arrow-left").forEach((element, index) => {
                     let dataAppId = element.closest("div[data-application-id]").getAttribute("data-application-id");
                     let dataUserId = element.closest("div[data-steamid]").getAttribute("data-steamid");
                     element.innerHTML = '<input type="checkbox" id="trade_box_' + dataUserId + "-" + dataAppId + '" value="' + dataUserId + "-" + dataAppId + '" />';
                 });
 
-                document.querySelectorAll("input[id^='trade_box_']").forEach(((element) =>{
-                    element.addEventListener('change', ((event) => {    
-                            this.updateTradeLink(event.target.closest("div.card-body"));
-                      }).bind(this));
-                }).bind(this));
+                document.querySelectorAll("input[id^='trade_box_']").forEach((element) => {
+                    element.addEventListener('change', ((event) => {
+                        this.updateTradeLink(event.target.closest("div.card-body"));
+                    }).bind(this));
+                });
+
+                this.createCardSelectionInteraction();
 
                 clearInterval(this.intervalId);
                 this.intervalId = null;
@@ -97,45 +105,97 @@ function ScanResultConfigurator() {
         }).bind(this), 1000);
     }
 
+    this.
+
     this.updateTradeLink = (tradeContainer) => {
         let selectedTrades = tradeContainer.querySelectorAll("input[id^='trade_box_']:checked");
-        let unSelectedTrades = tradeContainer.querySelectorAll("input[id^='trade_box_']:not(:checked)");
         let tradeLink = tradeContainer.closest("div.user-results.card").querySelector("a[href*='/tradeOffer']");
 
-        if(unSelectedTrades.length > 0){
-            for (const unSelectedCheck of unSelectedTrades){
-                let selectedCardContainers = unSelectedCheck.closest("div").querySelectorAll("div:not([class])");
-                this.unmarkCard(selectedCardContainers[0].querySelector("div[selected]"));
-                this.unmarkCard(selectedCardContainers[1].querySelector("div[selected]"));
-            }
-        }
-
-        if(selectedTrades.length === 0){
+        if (selectedTrades.length === 0) {
             tradeLink.href = tradeLink.getAttribute("originalHref");
             tradeLink.removeAttribute("originalHref");
         } else {
-            if(!tradeLink.getAttribute("originalHref")){
+            if (!tradeLink.getAttribute("originalHref")) {
                 tradeLink.setAttribute("originalHref", tradeLink.href);
             }
 
             let queryArrayString = [];
 
-            for (const selectedCheck of selectedTrades){
-                let tradeCardContainers = selectedCheck.closest("div").querySelectorAll("div:not([class])");
-                let youCard = tradeCardContainers[0].querySelector("div[data-classid]");
-                this.markCard(youCard);
-                let youCardId = youCard.getAttribute("data-classid");
-                queryArrayString.push("you[]="+ youCardId);
-                let themCard = tradeCardContainers[1].querySelector("div[data-classid]");
-                this.markCard(themCard);
-                let themCardId = themCard.getAttribute("data-classid");
-                queryArrayString.push("them[]=" + themCardId);
+            for (const selectedCheck of selectedTrades) {
+
+                let cardGroupContainer = selectedCheck.closest("div.results-item");
+                let cardYourItemsContainer = cardGroupContainer.querySelector("div.items-yours");
+                let cardTheirItemsContainer = cardGroupContainer.querySelector("div.items-theirs");
+
+                if (!this.isAnyCardMarked(cardYourItemsContainer)){
+                    this.markFirstCard(cardYourItemsContainer);
+                }
+
+                if (!this.isAnyCardMarked(cardTheirItemsContainer)){
+                    this.markFirstCard(cardTheirItemsContainer);
+                }
+
+                let yourSelectedCard = this.findSelectedCard(cardYourItemsContainer);
+                let theirSelectedCard = this.findSelectedCard(cardTheirItemsContainer);
+
+                queryArrayString.push("you[]=" + yourSelectedCard.getAttribute("data-classid"));
+                queryArrayString.push("them[]=" + theirSelectedCard.getAttribute("data-classid"));
             }
 
             let basePath = tradeLink.href.split('?')[0];
             tradeLink.href = basePath + "?" + queryArrayString.join("&");
         }
+    }
 
+    this.createCardSelectionInteraction = () => {
+        this.fixIncorrectYoursItemsCardCcsClass();
+
+        document.querySelectorAll("div[data-classid]").forEach(((element) => {
+            element.addEventListener('click', ((event) => {
+                let selectedCard = event.target.parentElement;
+                this.markOnlySelectedCard(selectedCard);
+
+                if(this.cardGroupSelected(selectedCard)){
+                    this.updateTradeLink(event.target.closest("div.card-body"));
+                }
+
+            }).bind(this));
+        }).bind(this));
+
+    }
+
+    this.findSelectedCard =(cardContainer) => {
+      return cardContainer.querySelector("div[selected='true']");
+    };
+
+    this.cardGroupSelected = (selectedCard) => {
+        return null !== selectedCard.closest("div.results-item").querySelector("input[id^='trade_box_']:checked");
+    }
+
+    this.isAnyCardMarked = (cardContainer) => {
+        return null !== cardContainer.querySelector("div[selected='true']");
+    }
+
+    this.markFirstCard = (cardContainer) => {
+           this.markCard(cardContainer.querySelector("div[data-classid]"));
+    }
+
+    this.markOnlySelectedCard = (selectedCard) => {
+         let cardGroup = selectedCard.closest("div.items-yours, div.items-theirs");
+         let listOfCards = cardGroup.querySelectorAll("div[data-classid]");
+
+         listOfCards.forEach((card) => {
+             this.unmarkCard(card);
+         });
+
+         this.markCard(selectedCard);
+    }
+
+    this.fixIncorrectYoursItemsCardCcsClass = () => {
+        document.querySelectorAll(".items-yours").forEach((element) => {
+            element.classList.remove("items-yours");
+            element.parentElement.classList.add("items-yours");
+        });
     }
 
     this.markCard = (cardContainer) => {
@@ -145,7 +205,7 @@ function ScanResultConfigurator() {
 
     this.unmarkCard = (cardContainer) => {
         cardContainer.style.border = "none";
-        cardContainer.setAttribute("selected", true);
+        cardContainer.removeAttribute("selected");
     }
 }
 
