@@ -105,8 +105,6 @@ function ScanResultConfigurator() {
         }).bind(this), 1000);
     }
 
-    this.
-
     this.updateTradeLink = (tradeContainer) => {
         let selectedTrades = tradeContainer.querySelectorAll("input[id^='trade_box_']:checked");
         let tradeLink = tradeContainer.closest("div.user-results.card").querySelector("a[href*='/tradeOffer']");
