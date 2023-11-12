@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      3.8
+// @version      3.9
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/matcher
