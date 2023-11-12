@@ -81,7 +81,7 @@ function ScanResultConfigurator() {
 
             if (document.querySelector("#results-status").innerText.trim() !== 'Calculating... Please wait...') {
 
-                if (document.querySelectorAll("i.fa-arrow-right-arrow-left").length > 0 && document.querySelectorAll("i.fa-arrow-right-arrow-left").length === 0) {
+                if (document.querySelectorAll("i.fa-arrow-right-arrow-left").length === 0) {
                     return;
                 }
 
