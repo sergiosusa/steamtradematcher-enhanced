@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      3.10
+// @version      3.11
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/matcher
@@ -126,11 +126,11 @@ function ScanResultConfigurator() {
                 let cardYourItemsContainer = cardGroupContainer.querySelector("div.items-yours");
                 let cardTheirItemsContainer = cardGroupContainer.querySelector("div.items-theirs");
 
-                if (!this.isAnyCardMarked(cardYourItemsContainer)){
+                if (!this.isAnyCardMarked(cardYourItemsContainer)) {
                     this.markFirstCard(cardYourItemsContainer);
                 }
 
-                if (!this.isAnyCardMarked(cardTheirItemsContainer)){
+                if (!this.isAnyCardMarked(cardTheirItemsContainer)) {
                     this.markFirstCard(cardTheirItemsContainer);
                 }
 
@@ -154,7 +154,7 @@ function ScanResultConfigurator() {
                 let selectedCard = event.target.parentElement;
                 this.markOnlySelectedCard(selectedCard);
 
-                if(this.cardGroupSelected(selectedCard)){
+                if (this.cardGroupSelected(selectedCard)) {
                     this.updateTradeLink(event.target.closest("div.card-body"));
                 }
 
@@ -163,8 +163,8 @@ function ScanResultConfigurator() {
 
     }
 
-    this.findSelectedCard =(cardContainer) => {
-      return cardContainer.querySelector("div[selected='true']");
+    this.findSelectedCard = (cardContainer) => {
+        return cardContainer.querySelector("div[selected='true']");
     };
 
     this.cardGroupSelected = (selectedCard) => {
@@ -176,18 +176,18 @@ function ScanResultConfigurator() {
     }
 
     this.markFirstCard = (cardContainer) => {
-           this.markCard(cardContainer.querySelector("div[data-classid]"));
+        this.markCard(cardContainer.querySelector("div[data-classid]"));
     }
 
     this.markOnlySelectedCard = (selectedCard) => {
-         let cardGroup = selectedCard.closest("div.items-yours, div.items-theirs");
-         let listOfCards = cardGroup.querySelectorAll("div[data-classid]");
+        let cardGroup = selectedCard.closest("div.items-yours, div.items-theirs");
+        let listOfCards = cardGroup.querySelectorAll("div[data-classid]");
 
-         listOfCards.forEach((card) => {
-             this.unmarkCard(card);
-         });
+        listOfCards.forEach((card) => {
+            this.unmarkCard(card);
+        });
 
-         this.markCard(selectedCard);
+        this.markCard(selectedCard);
     }
 
     this.fixIncorrectYoursItemsCardCcsClass = () => {
@@ -225,7 +225,8 @@ function FilterScanResults() {
     this.render = () => {
 
         this.intervalId = setInterval((() => {
-            if (document.querySelector("#results-status").innerText.trim() !== 'Calculating... Please wait...') {
+            let temporaryCalculationText = document.querySelector("#results-status").innerText.trim();
+            if (temporaryCalculationText !== 'Calculating... Please wait...' && !temporaryCalculationText.includes("queue")) {
 
                 if (document.querySelector("#filterToolbar") !== null) {
                     return;
@@ -350,7 +351,9 @@ function FullSetsResultAnalyzer() {
 
     this.render = () => {
         this.intervalId = setInterval((() => {
-            if (document.querySelector("#results").innerText.trim() !== 'Calculating... Please wait...') {
+
+            let temporaryCalculationText = document.querySelector("#results").innerText.trim();
+            if (temporaryCalculationText !== 'Calculating... Please wait...' && !temporaryCalculationText.includes("queue")) {
                 this.injectSteamCardExchangeGameLink();
                 this.printBadgeAnalysis();
                 clearInterval(this.intervalId);
@@ -526,7 +529,7 @@ FullSetsResultAnalyzer.prototype = Object.create(Renderer.prototype);
 function ToolsExtraLink() {
     Renderer.call(this);
 
-    this.handlePage = /https:\/\/www.steamtradematcher\.com\/tools/g;
+    this.handlePage = /https:\/\/www.steamtradematcher\.com\/tools$/g;
 
     this.render = () => {
         document.querySelector('.row').innerHTML = document.querySelector('.row').innerHTML +
