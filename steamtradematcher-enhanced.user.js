@@ -12,7 +12,6 @@
 // @grant        none
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js
 // @homepageURL  https://github.com/sergiosusa/steamtradematcher-enhanced
-// @homepage     https://github.com/sergiosusa/steamtradematcher-enhanced
 // @supportURL   https://github.com/sergiosusa/steamtradematcher-enhanced/issues
 // @downloadURL  https://github.com/sergiosusa/steamtradematcher-enhanced/raw/refs/heads/main/steamtradematcher-enhanced.user.js
 // @updateURL    https://github.com/sergiosusa/steamtradematcher-enhanced/raw/refs/heads/main/steamtradematcher-enhanced.user.js
