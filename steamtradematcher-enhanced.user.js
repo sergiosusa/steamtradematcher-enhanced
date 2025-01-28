@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      3.11
+// @version      3.12
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=steamtradematcher.com
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/matcher
 // @match        https://www.steamtradematcher.com/tools/fullsets
@@ -10,6 +11,10 @@
 // @match        https://www.steamtradematcher.com/*
 // @grant        none
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js
+// @homepageURL  https://github.com/sergiosusa/steamtradematcher-enhanced
+// @supportURL   https://github.com/sergiosusa/steamtradematcher-enhanced/issues
+// @downloadURL  https://github.com/sergiosusa/steamtradematcher-enhanced/raw/refs/heads/main/steamtradematcher-enhanced.user.js
+// @updateURL    https://github.com/sergiosusa/steamtradematcher-enhanced/raw/refs/heads/main/steamtradematcher-enhanced.user.js
 // ==/UserScript==
 
 var currentPage = window.location.pathname;
