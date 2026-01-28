@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      3.11
+// @version      3.12
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/matcher
@@ -80,7 +80,7 @@ function ScanResultConfigurator() {
         this.intervalId = setInterval((() => {
 
             let temporaryCalculationText = document.querySelector("#results-status").innerText.trim();
-            if (temporaryCalculationText !== 'Calculating... Please wait...' && !temporaryCalculationText.includes("queue")) {
+            if (temporaryCalculationText !== 'Calculating... Please wait...' && !temporaryCalculationText.includes("queue") && temporaryCalculationText !== "You are next in line...") {
 
                 if (document.querySelectorAll("i.fa-arrow-right-arrow-left").length === 0) {
                     return;
