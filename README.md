@@ -6,6 +6,7 @@ This script enhanced the famous steam trading cards site **Steam Trade Matcher**
   * Filter by users type: BOT or non BOT.
   * Sort by trades quantity.
   * Configure each trade result, selecting the game to trade and also which cards to trade.
+  * Add an auto-refresh button to load the inventory.
 
 * Add useful links and information to "Full Sets Calculator" tool:
   * [Steam Card Exchange](https://www.steamcardexchange.net/) to game's inventory. 
@@ -41,6 +42,7 @@ No extra configuration required.
 ![Trade result configuration](screenshots/steamtradematcher-enhanced-4.webp)
 ![Add relevant craft information](screenshots/steamtradematcher-enhanced-2.webp)
 ![Add useful links to "Full Sets Calculator" tool](screenshots/steamtradematcher-enhanced-3.webp)
+![Add an auto-refresh button to load the inventory](screenshots/steamtradematcher-enhanced-5.webp)
 
 ### ☕Buy me a coffee☕
 

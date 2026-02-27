@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      3.13
+// @version      3.14
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/matcher
@@ -34,6 +34,7 @@ var currentPage = window.location.pathname;
 })();
 
 function SteamTradeMatcher() {
+    Renderer.call(this);
 
     this.rendererList = [
         new FilterScanResults(),
@@ -42,36 +43,48 @@ function SteamTradeMatcher() {
         new ToolsExtraLink()
     ];
 
-    this.render = () => {
-        let renderers = this.findRenderers();
-
-        for (const renderer of renderers) {
-            renderer.render();
-        }
-    };
-
-    this.findRenderers = () => {
-        let renderers = [];
-
-        for (const renderer of this.rendererList) {
-            if (renderer.canHandleCurrentPage()) {
-                renderers.push(renderer);
-            }
-        }
-        return renderers;
-    };
+    this.globalRenderList = [
+        new AutoRefreshButton()
+    ];
 }
 
+SteamTradeMatcher.prototype = Object.create(Renderer.prototype);
+
 function Renderer() {
+    this.rendererList = [];
+    this.globalRenderList = [];
+
+    this.render = () => {
+        let renderer = this.findRenderer();
+        if (renderer) {
+            renderer.render();
+        }
+        this.globalRender();
+    }
+
+    this.findRenderer = () => {
+        return this.rendererList.find(renderer => renderer.canHandleCurrentPage());
+    };
+
+    this.globalRender = function () {
+        return this.globalRenderList.map(renderer => renderer.render());
+    }
+}
+
+function Renderable() {
     this.handlePage = "";
 
     this.canHandleCurrentPage = () => {
         return null !== document.location.href.match(this.handlePage);
     };
+
+    this.showAlert = (text) => {
+        alert(text);
+    }
 }
 
 function ScanResultConfigurator() {
-    Renderer.call(this);
+    Renderable.call(this);
 
     this.handlePage = /https:\/\/www.steamtradematcher\.com\/matcher/g;
     this.intervalId = null;
@@ -208,11 +221,11 @@ function ScanResultConfigurator() {
     }
 }
 
-ScanResultConfigurator.prototype = Object.create(Renderer.prototype);
+ScanResultConfigurator.prototype = Object.create(Renderable.prototype);
 
 
 function FilterScanResults() {
-    Renderer.call(this);
+    Renderable.call(this);
     this.handlePage = /https:\/\/www.steamtradematcher\.com\/matcher/g;
     this.intervalId = null;
 
@@ -342,10 +355,10 @@ function FilterScanResults() {
     };
 }
 
-FilterScanResults.prototype = Object.create(Renderer.prototype);
+FilterScanResults.prototype = Object.create(Renderable.prototype);
 
 function FullSetsResultAnalyzer() {
-    Renderer.call(this);
+    Renderable.call(this);
     this.handlePage = /https:\/\/www.steamtradematcher\.com\/tools\/fullsets/g;
     this.intervalId = null;
 
@@ -524,10 +537,10 @@ function FullSetsResultAnalyzer() {
     };
 }
 
-FullSetsResultAnalyzer.prototype = Object.create(Renderer.prototype);
+FullSetsResultAnalyzer.prototype = Object.create(Renderable.prototype);
 
 function ToolsExtraLink() {
-    Renderer.call(this);
+    Renderable.call(this);
 
     this.handlePage = /https:\/\/www.steamtradematcher\.com\/tools$/g;
 
@@ -544,4 +557,83 @@ function ToolsExtraLink() {
     }
 }
 
-ToolsExtraLink.prototype = Object.create(Renderer.prototype);
+ToolsExtraLink.prototype = Object.create(Renderable.prototype);
+
+function AutoRefreshButton() {
+    Renderable.call(this);
+
+    this.render = () => {
+        let container = document.querySelector("#user-status").closest("#navbarSupportedContent");
+
+        if (!container) {
+            return;
+        }
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+        @keyframes rotar {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animacion-giro {
+            animation: rotar 2s linear infinite;
+            display: inline-block;
+        }
+    `;
+        document.head.appendChild(style);
+
+        const reloadIcon = document.createElement('i');
+        reloadIcon.className = "fas fa-sync-alt";
+        reloadIcon.id = "auto-refresh";
+        reloadIcon.style.cursor = "pointer";
+        reloadIcon.style.marginRight = "10px";
+
+        const secondElement = container.childNodes[2];
+        container.insertBefore(reloadIcon, secondElement);
+
+        reloadIcon.addEventListener('click', () => {
+            if (localStorage.getItem('auto-refresh')) {
+                this.stop();
+            } else {
+                this.start();
+            }
+        });
+
+        if(localStorage.getItem('auto-refresh')) {
+            this.start();
+        }
+
+    }
+
+    this.start = () => {
+
+        if (document.querySelector("#user-status i.fas.text-warning") || document.querySelector("#user-status i.fa-spin")) {
+            let intervalId = setInterval(this.clickRefresh, 1000 * 10);
+            localStorage.setItem('auto-refresh', intervalId.toString());
+            document.querySelector("#auto-refresh").style.color = "#ff9800";
+            document.querySelector("#auto-refresh").classList.add("animacion-giro");
+        }
+    }
+
+    this.stop = () => {
+        let intervalId = localStorage.getItem('auto-refresh');
+        if (intervalId) {
+            clearInterval(parseInt(intervalId));
+        }
+        localStorage.removeItem('auto-refresh');
+        document.querySelector("#auto-refresh").style.color = "inherit";
+        document.querySelector("#auto-refresh").classList.remove("animacion-giro");
+    }
+
+    this.clickRefresh = () => {
+        if (document.querySelector("#user-status i.fas.text-warning")) {
+            document.querySelector('#user-status i[data-target="/api/requestInventoryRefresh"]').click();
+        } else {
+            if (document.querySelector("#user-status i.fas.text-success")) {
+                this.stop();
+            }
+        }
+    }
+}
+
+AutoRefreshButton.prototype = Object.create(Renderable.prototype);
