@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Trade Matcher Enhanced
 // @namespace    https://sergiosusa.com
-// @version      3.15
+// @version      3.16
 // @description  This script enhanced the famous steam trading cards site Steam Trade Matcher.
 // @author       Sergio Susa (sergio@sergiosusa.com)
 // @match        https://www.steamtradematcher.com/matcher
@@ -55,15 +55,22 @@ function Renderer() {
     this.globalRenderList = [];
 
     this.render = () => {
-        let renderer = this.findRenderer();
-        if (renderer) {
+        let renderers = this.findRenderers();
+        for (const renderer of renderers) {
             renderer.render();
         }
         this.globalRender();
     }
 
-    this.findRenderer = () => {
-        return this.rendererList.find(renderer => renderer.canHandleCurrentPage());
+    this.findRenderers = () => {
+        let renderers = [];
+
+        for (const renderer of this.rendererList) {
+            if (renderer.canHandleCurrentPage()) {
+                renderers.push(renderer);
+            }
+        }
+        return renderers;
     };
 
     this.globalRender = function () {
@@ -609,7 +616,7 @@ function AutoRefreshButton() {
 
     this.start = () => {
 
-        if (document.querySelector("#user-status i.fas.text-warning") || document.querySelector("#user-status i.fa-spin")) {
+        if (document.querySelector("#user-status i.fas.text-warning") || document.querySelector("#user-status i.fas.text-danger") || document.querySelector("#user-status i.fa-spin")) {
             let intervalId = setInterval(this.clickRefresh, 1000 * 10);
             localStorage.setItem('auto-refresh', intervalId.toString());
             document.querySelector("#auto-refresh").style.color = "#ff9800";
@@ -628,7 +635,7 @@ function AutoRefreshButton() {
     }
 
     this.clickRefresh = () => {
-        if (document.querySelector("#user-status i.fas.text-warning")) {
+        if (document.querySelector("#user-status i.fas.text-warning") ||  document.querySelector("#user-status i.fas.text-danger")) {
             document.querySelector('#user-status i[data-target="/api/requestInventoryRefresh"]').click();
         } else {
             if (document.querySelector("#user-status i.fas.text-success")) {
